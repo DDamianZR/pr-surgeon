@@ -1,0 +1,48 @@
+cat > .gitignore << 'EOF'
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+.turbo/
+
+# Environment variables - NEVER commit
+.env
+.env.local
+.env.production
+.env.development
+*.env
+
+# Cloned repos cache
+temp_repos/
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+logs/
+
+# Build outputs
+dist/
+build/
+EOF
