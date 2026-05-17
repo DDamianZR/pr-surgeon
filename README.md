@@ -4,6 +4,10 @@
 
 [![IBM Bob Hackathon](https://img.shields.io/badge/IBM%20Bob-Hackathon%202026-0f62fe)](https://lablab.ai/ai-hackathons/ibm-bob-hackathon)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 
 **Live Demo**: [pr-surgeon.vercel.app](https://pr-surgeon.vercel.app) <!-- replace -->
 **Video**: [Watch the 4-minute demo](https://...) <!-- replace -->
