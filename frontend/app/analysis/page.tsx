@@ -25,23 +25,44 @@ import {
   Sparkles,
   ChevronDown,
   ChevronUp,
+  Moon,
+  Sun,
 } from "lucide-react";
 
-const LAYER_COLORS: Record<string, { bg: string; border: string; text: string; dot: string }> = {
-  schema: { bg: "#fff1f1", border: "#da1e28", text: "#a2191f", dot: "#da1e28" },
-  backend: { bg: "#edf5ff", border: "#0f62fe", text: "#0043ce", dot: "#0f62fe" },
-  frontend: { bg: "#defbe6", border: "#24a148", text: "#0e6027", dot: "#24a148" },
-  tests: { bg: "#fcf4d6", border: "#f1c21b", text: "#8e6a00", dot: "#f1c21b" },
-  config: { bg: "#f4f4f4", border: "#525252", text: "#262626", dot: "#525252" },
-  docs: { bg: "#e8daff", border: "#8a3ffc", text: "#491d8b", dot: "#8a3ffc" },
-  mixed: { bg: "#f4f4f4", border: "#525252", text: "#262626", dot: "#525252" },
-  unknown: { bg: "#f4f4f4", border: "#a8a8a8", text: "#525252", dot: "#a8a8a8" },
+/* ── Theme hook (shared with landing) ── */
+function useTheme() {
+  const [dark, setDark] = useState(false);
+
+  useEffect(() => {
+    setDark(document.documentElement.classList.contains("dark"));
+  }, []);
+
+  function toggle() {
+    const next = !dark;
+    setDark(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("pr-surgeon-theme", next ? "dark" : "light");
+  }
+
+  return { dark, toggle };
+}
+
+/* ── Color tokens ── */
+const LAYER_COLORS: Record<string, { bg: string; bgDark: string; border: string; text: string; textDark: string; dot: string }> = {
+  schema:   { bg: "#fff1f1", bgDark: "#3b1111", border: "#da1e28", text: "#a2191f", textDark: "#ff8389", dot: "#da1e28" },
+  backend:  { bg: "#edf5ff", bgDark: "#0a1929", border: "#0f62fe", text: "#0043ce", textDark: "#78a9ff", dot: "#0f62fe" },
+  frontend: { bg: "#defbe6", bgDark: "#071d0e", border: "#24a148", text: "#0e6027", textDark: "#6fdc8c", dot: "#24a148" },
+  tests:    { bg: "#fcf4d6", bgDark: "#2e2100", border: "#f1c21b", text: "#8e6a00", textDark: "#f1c21b", dot: "#f1c21b" },
+  config:   { bg: "#f4f4f4", bgDark: "#2a2a2a", border: "#525252", text: "#262626", textDark: "#c6c6c6", dot: "#525252" },
+  docs:     { bg: "#e8daff", bgDark: "#1c0f30", border: "#8a3ffc", text: "#491d8b", textDark: "#be95ff", dot: "#8a3ffc" },
+  mixed:    { bg: "#f4f4f4", bgDark: "#2a2a2a", border: "#525252", text: "#262626", textDark: "#c6c6c6", dot: "#525252" },
+  unknown:  { bg: "#f4f4f4", bgDark: "#2a2a2a", border: "#a8a8a8", text: "#525252", textDark: "#a8a8a8", dot: "#a8a8a8" },
 };
 
 const RISK_STYLES: Record<string, { bg: string; text: string; label: string }> = {
-  low: { bg: "bg-green-50 border-green-200", text: "text-green-800", label: "Low risk" },
-  medium: { bg: "bg-yellow-50 border-yellow-200", text: "text-yellow-800", label: "Medium risk" },
-  high: { bg: "bg-red-50 border-red-200", text: "text-red-800", label: "High risk" },
+  low:    { bg: "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800", text: "text-green-800 dark:text-green-300", label: "Low risk" },
+  medium: { bg: "bg-yellow-50 dark:bg-yellow-950/30 border-yellow-200 dark:border-yellow-800", text: "text-yellow-800 dark:text-yellow-300", label: "Medium risk" },
+  high:   { bg: "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800", text: "text-red-800 dark:text-red-300", label: "High risk" },
 };
 
 interface SubPR {
@@ -76,7 +97,8 @@ interface AnalysisResult {
 function layoutNodes(
   rawNodes: AnalysisResult["graph_nodes"],
   rawEdges: AnalysisResult["graph_edges"],
-  subPRs: SubPR[]
+  subPRs: SubPR[],
+  isDark: boolean
 ): { nodes: Node[]; edges: Edge[] } {
   // Group nodes by sub-PR
   const fileToSubPR = new Map<string, SubPR>();
@@ -119,11 +141,11 @@ function layoutNodes(
       style: {
         width: subPRWidth,
         height: headerHeight + sp.files.length * (nodeHeight + nodeGap) + 16,
-        background: color.bg,
+        background: isDark ? color.bgDark : color.bg,
         border: `2px solid ${color.border}`,
         borderRadius: 8,
         padding: 8,
-        color: color.text,
+        color: isDark ? color.textDark : color.text,
         fontSize: 12,
       },
       selectable: false,
@@ -142,7 +164,7 @@ function layoutNodes(
               <div className="text-[11px] font-mono truncate" title={file}>
                 {filename}
               </div>
-              <div className="text-[9px] text-gray-500 truncate" title={file}>
+              <div className="text-[9px] opacity-50 truncate" title={file}>
                 {file.length > 32 ? "…" + file.slice(-32) : file}
               </div>
             </div>
@@ -151,12 +173,13 @@ function layoutNodes(
         style: {
           width: subPRWidth - 16,
           height: nodeHeight,
-          background: "white",
+          background: isDark ? "#1e1e1e" : "white",
           border: `1px solid ${color.border}40`,
           borderRadius: 4,
           padding: "4px 8px",
           fontSize: 11,
           textAlign: "left",
+          color: isDark ? "#e0e0e0" : "#161616",
         },
         parentNode: `group-${sp.id}`,
         extent: "parent",
@@ -166,16 +189,17 @@ function layoutNodes(
     });
   });
 
+  const edgeColor = isDark ? "#4589ff" : "#0f62fe";
   const edges: Edge[] = rawEdges.map((e) => ({
     id: e.id,
     source: e.source,
     target: e.target,
     type: "smoothstep",
     animated: false,
-    style: { stroke: "#0f62fe", strokeWidth: 1.5, opacity: 0.6 },
+    style: { stroke: edgeColor, strokeWidth: 1.5, opacity: 0.6 },
     markerEnd: {
       type: MarkerType.ArrowClosed,
-      color: "#0f62fe",
+      color: edgeColor,
       width: 12,
       height: 12,
     },
@@ -186,6 +210,7 @@ function layoutNodes(
 
 export default function AnalysisPage() {
   const router = useRouter();
+  const { dark, toggle } = useTheme();
   const [data, setData] = useState<AnalysisResult | null>(null);
   const [selectedSubPR, setSelectedSubPR] = useState<SubPR | null>(null);
   const [expandedDescription, setExpandedDescription] = useState(false);
@@ -207,8 +232,8 @@ export default function AnalysisPage() {
 
   const layoutResult = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
-    return layoutNodes(data.graph_nodes, data.graph_edges, data.sub_prs);
-  }, [data]);
+    return layoutNodes(data.graph_nodes, data.graph_edges, data.sub_prs, dark);
+  }, [data, dark]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
@@ -237,8 +262,8 @@ export default function AnalysisPage() {
 
   if (!data) {
     return (
-      <main className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-gray-500 text-sm">Loading analysis…</div>
+      <main className="min-h-screen bg-white dark:bg-[#161616] flex items-center justify-center transition-colors">
+        <div className="text-gray-500 dark:text-gray-400 text-sm">Loading analysis…</div>
       </main>
     );
   }
@@ -249,24 +274,24 @@ export default function AnalysisPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 flex flex-col">
+    <main className="min-h-screen bg-gray-50 dark:bg-[#161616] flex flex-col transition-colors">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-3 shrink-0">
+      <header className="bg-white dark:bg-[#1e1e1e] border-b border-gray-200 dark:border-gray-800 px-6 py-3 shrink-0 transition-colors">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => router.push("/")}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 hover:text-ibm-blue hover:bg-blue-50 rounded transition-colors"
+              className="flex items-center gap-1 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-ibm-blue hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               New analysis
             </button>
-            <div className="h-6 w-px bg-gray-200" />
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
             <div className="min-w-0">
-              <div className="text-xs text-gray-500 font-mono truncate">
+              <div className="text-xs text-gray-500 dark:text-gray-400 font-mono truncate">
                 {data.repo_full_name}
               </div>
-              <div className="text-sm font-semibold text-gray-900 truncate" title={data.pr_title}>
+              <div className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate" title={data.pr_title}>
                 {data.pr_title}
               </div>
             </div>
@@ -275,25 +300,32 @@ export default function AnalysisPage() {
           <div className="flex items-center gap-6 text-sm shrink-0">
             <div className="flex items-center gap-1.5">
               <FileText className="w-4 h-4 text-gray-400" />
-              <span className="font-mono text-gray-900">{data.total_files}</span>
-              <span className="text-gray-500 text-xs">files</span>
+              <span className="font-mono text-gray-900 dark:text-gray-100">{data.total_files}</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">files</span>
             </div>
             <div className="flex items-center gap-1.5">
               <GitBranch className="w-4 h-4 text-gray-400" />
-              <span className="font-mono text-gray-900">{data.sub_prs.length}</span>
-              <span className="text-gray-500 text-xs">sub-PRs</span>
+              <span className="font-mono text-gray-900 dark:text-gray-100">{data.sub_prs.length}</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">sub-PRs</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-gray-400" />
-              <span className="font-mono text-gray-900">{Object.keys(layerCounts).length}</span>
-              <span className="text-gray-500 text-xs">layers</span>
+              <span className="font-mono text-gray-900 dark:text-gray-100">{Object.keys(layerCounts).length}</span>
+              <span className="text-gray-500 dark:text-gray-400 text-xs">layers</span>
             </div>
             <div className="flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-ibm-blue" />
-              <span className="font-mono text-ibm-blue-dark text-xs">
+              <span className="font-mono text-ibm-blue-dark dark:text-ibm-blue-light text-xs">
                 {data.analysis_duration_ms}ms
               </span>
             </div>
+            <button
+              onClick={toggle}
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
+              aria-label="Toggle dark mode"
+            >
+              {dark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </button>
           </div>
         </div>
       </header>
@@ -301,7 +333,7 @@ export default function AnalysisPage() {
       {/* Body */}
       <div className="flex-1 flex overflow-hidden">
         {/* Graph */}
-        <div className="flex-1 relative bg-white">
+        <div className="flex-1 relative bg-white dark:bg-[#1a1a1a] transition-colors">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -317,21 +349,22 @@ export default function AnalysisPage() {
             elementsSelectable={true}
             proOptions={{ hideAttribution: true }}
           >
-            <Background color="#0f62fe" gap={32} size={1} style={{ opacity: 0.06 }} />
+            <Background color={dark ? "#4589ff" : "#0f62fe"} gap={32} size={1} style={{ opacity: 0.06 }} />
             <Controls showInteractive={false} />
             <MiniMap
               nodeColor={(n) => {
                 if (n.id.startsWith("group-")) return "#0f62fe";
-                return "#a8a8a8";
+                return dark ? "#525252" : "#a8a8a8";
               }}
+              maskColor={dark ? "rgba(0,0,0,0.7)" : undefined}
               pannable
               zoomable
             />
           </ReactFlow>
 
           {/* Legend */}
-          <div className="absolute top-3 left-3 bg-white border border-gray-200 rounded-lg px-3 py-2 shadow-sm">
-            <div className="text-[10px] font-medium uppercase tracking-wider text-gray-500 mb-1.5">
+          <div className="absolute top-3 left-3 bg-white dark:bg-[#262626] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 shadow-sm transition-colors">
+            <div className="text-[10px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1.5">
               Layers
             </div>
             <div className="flex items-center gap-3 text-xs">
@@ -343,8 +376,8 @@ export default function AnalysisPage() {
                       className="w-2 h-2 rounded-full"
                       style={{ background: c.dot }}
                     />
-                    <span className="text-gray-700">{layer}</span>
-                    <span className="text-gray-400 font-mono text-[10px]">
+                    <span className="text-gray-700 dark:text-gray-300">{layer}</span>
+                    <span className="text-gray-400 dark:text-gray-500 font-mono text-[10px]">
                       ({count})
                     </span>
                   </div>
@@ -355,11 +388,11 @@ export default function AnalysisPage() {
         </div>
 
         {/* Sidebar */}
-        <aside className="w-[420px] bg-white border-l border-gray-200 flex flex-col shrink-0">
+        <aside className="w-[420px] bg-white dark:bg-[#1e1e1e] border-l border-gray-200 dark:border-gray-800 flex flex-col shrink-0 transition-colors">
           {/* Sub-PR list */}
-          <div className="border-b border-gray-200 max-h-[40%] overflow-y-auto">
-            <div className="sticky top-0 bg-white px-4 py-2 border-b border-gray-100">
-              <div className="text-xs font-medium uppercase tracking-wider text-gray-500">
+          <div className="border-b border-gray-200 dark:border-gray-800 max-h-[40%] overflow-y-auto">
+            <div className="sticky top-0 bg-white dark:bg-[#1e1e1e] px-4 py-2 border-b border-gray-100 dark:border-gray-800 transition-colors">
+              <div className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
                 Proposed sub-PRs · merge order
               </div>
             </div>
@@ -376,8 +409,8 @@ export default function AnalysisPage() {
                     }}
                     className={`w-full text-left px-4 py-3 border-l-2 transition-colors ${
                       isSelected
-                        ? "bg-blue-50 border-l-ibm-blue"
-                        : "border-l-transparent hover:bg-gray-50"
+                        ? "bg-blue-50 dark:bg-blue-950/30 border-l-ibm-blue"
+                        : "border-l-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     }`}
                   >
                     <div className="flex items-start gap-2">
@@ -391,10 +424,10 @@ export default function AnalysisPage() {
                         {sp.merge_order}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-gray-900 truncate">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                           {sp.suggested_title}
                         </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                           <span className="font-mono">{sp.files.length} files</span>
                           <span>·</span>
                           <span className="font-mono">~{sp.estimated_review_time_min}min</span>
@@ -402,10 +435,10 @@ export default function AnalysisPage() {
                           <span
                             className={`text-xs ${
                               sp.risk_level === "high"
-                                ? "text-red-600"
+                                ? "text-red-600 dark:text-red-400"
                                 : sp.risk_level === "medium"
-                                ? "text-yellow-700"
-                                : "text-green-700"
+                                ? "text-yellow-700 dark:text-yellow-400"
+                                : "text-green-700 dark:text-green-400"
                             }`}
                           >
                             {sp.risk_level}
@@ -423,10 +456,10 @@ export default function AnalysisPage() {
           {selectedSubPR && (
             <div className="flex-1 overflow-y-auto p-4">
               <div className="mb-4">
-                <div className="text-[10px] font-mono uppercase tracking-wider text-gray-500 mb-1">
+                <div className="text-[10px] font-mono uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                   Sub-PR #{selectedSubPR.merge_order} · {selectedSubPR.layer}
                 </div>
-                <h2 className="text-base font-semibold text-gray-900 leading-snug">
+                <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 leading-snug">
                   {selectedSubPR.suggested_title}
                 </h2>
               </div>
@@ -447,60 +480,60 @@ export default function AnalysisPage() {
 
               {/* Stats row */}
               <div className="grid grid-cols-3 gap-2 mt-4">
-                <div className="bg-gray-50 rounded-md p-2">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                <div className="bg-gray-50 dark:bg-[#262626] rounded-md p-2 transition-colors">
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Files
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 font-mono">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 font-mono">
                     {selectedSubPR.files.length}
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-md p-2">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                <div className="bg-gray-50 dark:bg-[#262626] rounded-md p-2 transition-colors">
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Review
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 font-mono flex items-baseline gap-0.5">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 font-mono flex items-baseline gap-0.5">
                     {selectedSubPR.estimated_review_time_min}
-                    <span className="text-xs text-gray-500">min</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">min</span>
                   </div>
                 </div>
-                <div className="bg-gray-50 rounded-md p-2">
-                  <div className="text-[10px] text-gray-500 uppercase tracking-wider">
+                <div className="bg-gray-50 dark:bg-[#262626] rounded-md p-2 transition-colors">
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                     Lines
                   </div>
-                  <div className="text-lg font-semibold text-gray-900 font-mono">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 font-mono">
                     {selectedSubPR.size_lines}
                   </div>
                 </div>
               </div>
 
               {/* Reviewer */}
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-md">
-                <div className="text-[10px] font-medium uppercase tracking-wider text-ibm-blue-dark mb-1">
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800 rounded-md transition-colors">
+                <div className="text-[10px] font-medium uppercase tracking-wider text-ibm-blue-dark dark:text-ibm-blue-light mb-1">
                   Suggested reviewer
                 </div>
-                <div className="text-sm text-gray-900">
+                <div className="text-sm text-gray-900 dark:text-gray-100">
                   {selectedSubPR.suggested_reviewer_profile}
                 </div>
               </div>
 
               {/* Files list */}
               <div className="mt-4">
-                <div className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-2">
+                <div className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                   Files ({selectedSubPR.files.length})
                 </div>
                 <div className="space-y-1">
                   {selectedSubPR.files.slice(0, 8).map((f) => (
                     <div
                       key={f}
-                      className="text-xs font-mono text-gray-700 px-2 py-1 bg-gray-50 rounded border border-gray-100 truncate"
+                      className="text-xs font-mono text-gray-700 dark:text-gray-300 px-2 py-1 bg-gray-50 dark:bg-[#262626] rounded border border-gray-100 dark:border-gray-700 truncate transition-colors"
                       title={f}
                     >
                       {f}
                     </div>
                   ))}
                   {selectedSubPR.files.length > 8 && (
-                    <div className="text-xs text-gray-500 px-2">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
                       + {selectedSubPR.files.length - 8} more
                     </div>
                   )}
@@ -510,12 +543,12 @@ export default function AnalysisPage() {
               {/* Testing */}
               {selectedSubPR.testing_recommendations.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-xs font-medium uppercase tracking-wider text-gray-500 mb-2">
+                  <div className="text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
                     Testing recommendations
                   </div>
                   <ul className="space-y-1.5">
                     {selectedSubPR.testing_recommendations.map((t, i) => (
-                      <li key={i} className="text-sm text-gray-700 flex gap-2">
+                      <li key={i} className="text-sm text-gray-700 dark:text-gray-300 flex gap-2">
                         <span className="text-ibm-blue shrink-0">▸</span>
                         <span>{t}</span>
                       </li>
@@ -527,14 +560,14 @@ export default function AnalysisPage() {
               {/* Potential issues */}
               {selectedSubPR.potential_issues.length > 0 && (
                 <div className="mt-4">
-                  <div className="text-xs font-medium uppercase tracking-wider text-red-600 mb-2 flex items-center gap-1">
+                  <div className="text-xs font-medium uppercase tracking-wider text-red-600 dark:text-red-400 mb-2 flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
                     Potential issues
                   </div>
                   <ul className="space-y-1.5">
                     {selectedSubPR.potential_issues.map((t, i) => (
-                      <li key={i} className="text-sm text-gray-700 flex gap-2">
-                        <span className="text-red-500 shrink-0">▸</span>
+                      <li key={i} className="text-sm text-gray-700 dark:text-gray-300 flex gap-2">
+                        <span className="text-red-500 dark:text-red-400 shrink-0">▸</span>
                         <span>{t}</span>
                       </li>
                     ))}
@@ -546,7 +579,7 @@ export default function AnalysisPage() {
               <div className="mt-4">
                 <button
                   onClick={() => setExpandedDescription(!expandedDescription)}
-                  className="flex items-center gap-1 text-xs font-medium text-ibm-blue hover:text-ibm-blue-dark"
+                  className="flex items-center gap-1 text-xs font-medium text-ibm-blue hover:text-ibm-blue-dark dark:hover:text-ibm-blue-light"
                 >
                   {expandedDescription ? (
                     <ChevronUp className="w-3.5 h-3.5" />
@@ -556,19 +589,19 @@ export default function AnalysisPage() {
                   Full PR description
                 </button>
                 {expandedDescription && (
-                  <div className="mt-2 p-3 bg-gray-50 border border-gray-200 rounded text-xs text-gray-700 whitespace-pre-wrap font-mono">
+                  <div className="mt-2 p-3 bg-gray-50 dark:bg-[#262626] border border-gray-200 dark:border-gray-700 rounded text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono transition-colors">
                     {selectedSubPR.description_markdown}
                   </div>
                 )}
               </div>
 
               {/* Rationale */}
-              <div className="mt-4 pt-4 border-t border-gray-100">
-                <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-gray-500 mb-1">
+              <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-1 text-[10px] font-mono uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1">
                   <Clock className="w-3 h-3" />
                   Rationale
                 </div>
-                <div className="text-xs text-gray-600 leading-relaxed">
+                <div className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                   {selectedSubPR.rationale}
                 </div>
               </div>

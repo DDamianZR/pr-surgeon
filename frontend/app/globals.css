@@ -7,17 +7,40 @@
 :root {
   --ibm-blue: #0f62fe;
   --ibm-blue-dark: #0043ce;
+  --ibm-blue-light: #4589ff;
   --ibm-red: #da1e28;
   --ibm-green: #24a148;
   --ibm-yellow: #f1c21b;
   --ibm-gray: #525252;
+  --ibm-purple: #8a3ffc;
+
+  /* Surface tokens */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f4f4f4;
+  --bg-tertiary: #e0e0e0;
+  --text-primary: #161616;
+  --text-secondary: #525252;
+  --text-tertiary: #a8a8a8;
+  --border-primary: #e0e0e0;
+  --border-secondary: #c6c6c6;
+}
+
+.dark {
+  --bg-primary: #161616;
+  --bg-secondary: #262626;
+  --bg-tertiary: #393939;
+  --text-primary: #f4f4f4;
+  --text-secondary: #c6c6c6;
+  --text-tertiary: #6f6f6f;
+  --border-primary: #393939;
+  --border-secondary: #525252;
 }
 
 html,
 body {
   font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
-  background: white;
-  color: #161616;
+  background: var(--bg-primary);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -34,23 +57,36 @@ code,
 
 .react-flow__controls {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  border: 1px solid #e0e0e0 !important;
+  border: 1px solid var(--border-primary) !important;
   border-radius: 6px !important;
   overflow: hidden;
 }
 
 .react-flow__controls button {
-  background: white !important;
-  border-color: #e0e0e0 !important;
+  background: var(--bg-primary) !important;
+  border-color: var(--border-primary) !important;
+  color: var(--text-primary) !important;
 }
 
 .react-flow__controls button:hover {
-  background: #f4f4f4 !important;
+  background: var(--bg-secondary) !important;
+}
+
+.react-flow__controls button svg {
+  fill: var(--text-primary) !important;
 }
 
 .react-flow__minimap {
-  border: 1px solid #e0e0e0 !important;
+  border: 1px solid var(--border-primary) !important;
   border-radius: 6px !important;
+}
+
+.dark .react-flow__minimap {
+  background: #262626 !important;
+}
+
+.dark .react-flow__controls {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Smooth scrollbars */
@@ -64,10 +100,15 @@ code,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d0d0d0;
+  background: var(--border-secondary);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--text-tertiary);
+}
+
+/* Dark mode transition */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
