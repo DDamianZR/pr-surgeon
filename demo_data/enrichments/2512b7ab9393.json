@@ -1,0 +1,199 @@
+[
+  {
+    "id": "c7f4219dde2d",
+    "suggested_title": "Schema: django migrations",
+    "files": [
+      "django/db/backends/base/schema.py",
+      "django/db/backends/oracle/schema.py",
+      "django/db/backends/sqlite3/schema.py",
+      "django/db/models/__init__.py",
+      "django/db/models/aggregates.py",
+      "django/db/models/base.py",
+      "django/db/models/fields/__init__.py",
+      "django/db/models/fields/composite.py",
+      "django/db/models/fields/related.py",
+      "django/db/models/fields/related_lookups.py",
+      "django/db/models/fields/tuple_lookups.py",
+      "django/db/models/options.py",
+      "django/db/models/query.py",
+      "django/db/models/sql/compiler.py",
+      "django/db/models/sql/query.py"
+    ],
+    "merge_order": 1,
+    "rationale": "This sub-PR groups 15 file(s) from the schema layer. Top directory: django. Estimated review: ~48min.",
+    "risk_level": "high",
+    "estimated_review_time_min": 48,
+    "layer": "schema",
+    "size_lines": 420,
+    "description_markdown": "## Overview\nThis sub-PR contains 15 file(s) from the **schema** layer.\n\n## Files Changed\n- `django/db/backends/base/schema.py`\n- `django/db/backends/oracle/schema.py`\n- `django/db/backends/sqlite3/schema.py`\n- `django/db/models/__init__.py`\n- `django/db/models/aggregates.py`\n- `django/db/models/base.py`\n- `django/db/models/fields/__init__.py`\n- `django/db/models/fields/composite.py`\n- `django/db/models/fields/related.py`\n- `django/db/models/fields/related_lookups.py`\n- `django/db/models/fields/tuple_lookups.py`\n- `django/db/models/options.py`\n- `django/db/models/query.py`\n- `django/db/models/sql/compiler.py`\n- `django/db/models/sql/query.py`\n\n## Merge Order\nThis is sub-PR #1 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **high**\n\nSchema or core config changes. Coordinate with team before merging. Consider rollback plan.\n",
+    "testing_recommendations": [
+      "Run database migration tests",
+      "Verify rollback procedure",
+      "Test against production-like data"
+    ],
+    "potential_issues": [
+      "Coordinate with team before merging",
+      "Consider feature flag for rollout",
+      "Plan rollback procedure"
+    ],
+    "suggested_reviewer_profile": "Senior backend engineer with database migration experience"
+  },
+  {
+    "id": "ef54002c0d81",
+    "suggested_title": "Tests: tests test suite",
+    "files": [
+      "tests/admin_registration/models.py",
+      "tests/admin_registration/tests.py"
+    ],
+    "merge_order": 2,
+    "rationale": "This sub-PR groups 2 file(s) from the tests layer. Top directory: tests. Estimated review: ~14min.",
+    "risk_level": "low",
+    "estimated_review_time_min": 14,
+    "layer": "tests",
+    "size_lines": 16,
+    "description_markdown": "## Overview\nThis sub-PR contains 2 file(s) from the **tests** layer.\n\n## Files Changed\n- `tests/admin_registration/models.py`\n- `tests/admin_registration/tests.py`\n\n## Merge Order\nThis is sub-PR #2 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **low**\n\nLow-risk changes. Can merge after standard review.\n",
+    "testing_recommendations": [
+      "Verify test coverage didn't regress"
+    ],
+    "potential_issues": [],
+    "suggested_reviewer_profile": "Any engineer with testing focus"
+  },
+  {
+    "id": "776ee0733143",
+    "suggested_title": "Tests: tests test suite",
+    "files": [
+      "tests/migrations/test_autodetector.py",
+      "tests/migrations/test_operations.py",
+      "tests/migrations/test_state.py",
+      "tests/migrations/test_writer.py"
+    ],
+    "merge_order": 3,
+    "rationale": "This sub-PR groups 4 file(s) from the tests layer. Top directory: tests. Estimated review: ~21min.",
+    "risk_level": "low",
+    "estimated_review_time_min": 21,
+    "layer": "tests",
+    "size_lines": 185,
+    "description_markdown": "## Overview\nThis sub-PR contains 4 file(s) from the **tests** layer.\n\n## Files Changed\n- `tests/migrations/test_autodetector.py`\n- `tests/migrations/test_operations.py`\n- `tests/migrations/test_state.py`\n- `tests/migrations/test_writer.py`\n\n## Merge Order\nThis is sub-PR #3 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **low**\n\nLow-risk changes. Can merge after standard review.\n",
+    "testing_recommendations": [
+      "Verify test coverage didn't regress"
+    ],
+    "potential_issues": [],
+    "suggested_reviewer_profile": "Any engineer with testing focus"
+  },
+  {
+    "id": "64e0128c66b9",
+    "suggested_title": "Tests: tests test suite",
+    "files": [
+      "tests/composite_pk/__init__.py",
+      "tests/composite_pk/fixtures/tenant.json",
+      "tests/composite_pk/models/__init__.py",
+      "tests/composite_pk/models/tenant.py",
+      "tests/composite_pk/test_aggregate.py",
+      "tests/composite_pk/test_checks.py",
+      "tests/composite_pk/test_create.py",
+      "tests/composite_pk/test_delete.py",
+      "tests/composite_pk/test_filter.py",
+      "tests/composite_pk/test_get.py",
+      "tests/composite_pk/test_models.py",
+      "tests/composite_pk/test_names_to_path.py",
+      "tests/composite_pk/test_update.py",
+      "tests/composite_pk/test_values.py",
+      "tests/composite_pk/tests.py"
+    ],
+    "merge_order": 4,
+    "rationale": "This sub-PR groups 15 file(s) from the tests layer. Top directory: tests. Estimated review: ~85min.",
+    "risk_level": "low",
+    "estimated_review_time_min": 85,
+    "layer": "tests",
+    "size_lines": 2253,
+    "description_markdown": "## Overview\nThis sub-PR contains 15 file(s) from the **tests** layer.\n\n## Files Changed\n- `tests/composite_pk/__init__.py`\n- `tests/composite_pk/fixtures/tenant.json`\n- `tests/composite_pk/models/__init__.py`\n- `tests/composite_pk/models/tenant.py`\n- `tests/composite_pk/test_aggregate.py`\n- `tests/composite_pk/test_checks.py`\n- `tests/composite_pk/test_create.py`\n- `tests/composite_pk/test_delete.py`\n- `tests/composite_pk/test_filter.py`\n- `tests/composite_pk/test_get.py`\n- `tests/composite_pk/test_models.py`\n- `tests/composite_pk/test_names_to_path.py`\n- `tests/composite_pk/test_update.py`\n- `tests/composite_pk/test_values.py`\n- `tests/composite_pk/tests.py`\n\n## Merge Order\nThis is sub-PR #4 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **low**\n\nLow-risk changes. Can merge after standard review.\n",
+    "testing_recommendations": [
+      "Verify test coverage didn't regress"
+    ],
+    "potential_issues": [],
+    "suggested_reviewer_profile": "Any engineer with testing focus"
+  },
+  {
+    "id": "da812aa4317e",
+    "suggested_title": "Docs: docs documentation",
+    "files": [
+      "docs/ref/checks.txt",
+      "docs/ref/models/fields.txt"
+    ],
+    "merge_order": 5,
+    "rationale": "This sub-PR groups 2 file(s) from the docs layer. Top directory: docs. Estimated review: ~14min.",
+    "risk_level": "low",
+    "estimated_review_time_min": 14,
+    "layer": "docs",
+    "size_lines": 22,
+    "description_markdown": "## Overview\nThis sub-PR contains 2 file(s) from the **docs** layer.\n\n## Files Changed\n- `docs/ref/checks.txt`\n- `docs/ref/models/fields.txt`\n\n## Merge Order\nThis is sub-PR #5 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **low**\n\nLow-risk changes. Can merge after standard review.\n",
+    "testing_recommendations": [
+      "Review for clarity and accuracy"
+    ],
+    "potential_issues": [],
+    "suggested_reviewer_profile": "Technical writer or product manager"
+  },
+  {
+    "id": "6051be261438",
+    "suggested_title": "Docs: docs documentation",
+    "files": [
+      "docs/topics/composite-primary-key.txt",
+      "docs/topics/index.txt"
+    ],
+    "merge_order": 6,
+    "rationale": "This sub-PR groups 2 file(s) from the docs layer. Top directory: docs. Estimated review: ~17min.",
+    "risk_level": "low",
+    "estimated_review_time_min": 17,
+    "layer": "docs",
+    "size_lines": 184,
+    "description_markdown": "## Overview\nThis sub-PR contains 2 file(s) from the **docs** layer.\n\n## Files Changed\n- `docs/topics/composite-primary-key.txt`\n- `docs/topics/index.txt`\n\n## Merge Order\nThis is sub-PR #6 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **low**\n\nLow-risk changes. Can merge after standard review.\n",
+    "testing_recommendations": [
+      "Review for clarity and accuracy"
+    ],
+    "potential_issues": [],
+    "suggested_reviewer_profile": "Technical writer or product manager"
+  },
+  {
+    "id": "746f30ff41b2",
+    "suggested_title": "Docs: django documentation",
+    "files": [
+      "django/core/serializers/python.py",
+      "docs/releases/5.2.txt"
+    ],
+    "merge_order": 7,
+    "rationale": "This sub-PR groups 2 file(s) from the docs layer. Top directory: django. Estimated review: ~14min.",
+    "risk_level": "low",
+    "estimated_review_time_min": 14,
+    "layer": "docs",
+    "size_lines": 22,
+    "description_markdown": "## Overview\nThis sub-PR contains 2 file(s) from the **docs** layer.\n\n## Files Changed\n- `django/core/serializers/python.py`\n- `docs/releases/5.2.txt`\n\n## Merge Order\nThis is sub-PR #7 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **low**\n\nLow-risk changes. Can merge after standard review.\n",
+    "testing_recommendations": [
+      "Review for clarity and accuracy"
+    ],
+    "potential_issues": [],
+    "suggested_reviewer_profile": "Technical writer or product manager"
+  },
+  {
+    "id": "0b9b76020bca",
+    "suggested_title": "Cluster: django changes",
+    "files": [
+      "django/contrib/admin/sites.py"
+    ],
+    "merge_order": 8,
+    "rationale": "This sub-PR groups 1 file(s) from the mixed layer. Top directory: django. Estimated review: ~12min.",
+    "risk_level": "medium",
+    "estimated_review_time_min": 12,
+    "layer": "mixed",
+    "size_lines": 5,
+    "description_markdown": "## Overview\nThis sub-PR contains 1 file(s) from the **mixed** layer.\n\n## Files Changed\n- `django/contrib/admin/sites.py`\n\n## Merge Order\nThis is sub-PR #8 in the decomposition.\nMerge after lower-numbered sub-PRs are reviewed and merged.\n\n## Risk Assessment\nRisk level: **medium**\n\nStandard review. Peer review recommended before merging.\n",
+    "testing_recommendations": [
+      "Standard test suite",
+      "Manual smoke test"
+    ],
+    "potential_issues": [
+      "Review with at least one peer",
+      "Verify no breaking API changes"
+    ],
+    "suggested_reviewer_profile": "Tech lead familiar with the codebase"
+  }
+]

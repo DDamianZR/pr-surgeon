@@ -8,15 +8,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "ibm-blue": "#0f62fe",
-        "ibm-blue-dark": "#0043ce",
-        "ibm-red": "#da1e28",
-        "ibm-green": "#24a148",
-        "ibm-yellow": "#f1c21b",
-        "ibm-gray": "#525252",
+        "ibm-blue": { DEFAULT: "#0f62fe", dark: "#0043ce", light: "#4589ff" },
+        "ibm-red": { DEFAULT: "#da1e28", dark: "#a2191f" },
+        "ibm-green": { DEFAULT: "#24a148", dark: "#0e6027" },
+        "ibm-yellow": { DEFAULT: "#f1c21b", dark: "#8e6a00" },
+        "ibm-gray": { DEFAULT: "#525252", dark: "#262626", light: "#a8a8a8" },
+        "ibm-purple": { DEFAULT: "#8a3ffc", dark: "#491d8b" },
       },
       fontFamily: {
         sans: ["IBM Plex Sans", "system-ui", "sans-serif"],
+        mono: ["IBM Plex Mono", "monospace"],
       },
     },
   },
