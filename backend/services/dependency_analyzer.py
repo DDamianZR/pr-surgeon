@@ -345,16 +345,17 @@ class DependencyAnalyzer:
         for component in components:
             if len(component) <= 2:
                 # Too small for community detection, keep as-is
-                clusters.append(component)
+                clusters.append(set(component))  # Convert to mutable set
             else:
                 # Run community detection on this component
                 subgraph = undirected.subgraph(component)
                 try:
                     communities = nx.community.greedy_modularity_communities(subgraph)
-                    clusters.extend(communities)
+                    # Convert frozensets to mutable sets
+                    clusters.extend([set(c) for c in communities])
                 except Exception as e:
                     logger.warning(f"Community detection failed: {e}, using component as cluster")
-                    clusters.append(component)
+                    clusters.append(set(component))  # Convert to mutable set
         
         return clusters
     
@@ -378,12 +379,12 @@ class DependencyAnalyzer:
         # Create file map for quick lookup
         file_map = {f.filename: f for f in files}
         
-        # Stage 1: Merge tiny clusters (1-2 files)
+        # Stage 1: Merge tiny clusters (1-3 files)
         processed = []
         tiny_clusters = []
         
         for cluster in clusters:
-            if len(cluster) <= 2:
+            if len(cluster) <= 5:
                 tiny_clusters.append(cluster)
             else:
                 processed.append(cluster)
@@ -411,6 +412,9 @@ class DependencyAnalyzer:
             else:
                 # Isolated, keep as-is
                 processed.append(tiny)
+        
+        # Stage 1.5: Merge clusters by path prefix and layer
+        processed = self._merge_by_path_prefix(processed)
         
         # Stage 2: Split mega clusters (>30 files)
         final = []
@@ -452,12 +456,107 @@ class DependencyAnalyzer:
                 external_edges=external,
             ))
         
+        # Stage 3.5: Enforce hard cap of 8 clusters
+        if len(cluster_models) > 8:
+            # Keep top 7 largest clusters
+            cluster_models.sort(key=lambda c: len(c.files), reverse=True)
+            top_clusters = cluster_models[:7]
+            remaining = cluster_models[7:]
+            
+            # Merge all remaining into one "other" cluster
+            other_files = set()
+            for c in remaining:
+                other_files.update(c.files)
+            
+            # Create merged cluster
+            files_in_other = [file_map[f] for f in other_files if f in file_map]
+            other_layer = self._detect_layer(list(other_files))
+            
+            internal = sum(
+                1 for u, v in graph.edges()
+                if u in other_files and v in other_files
+            )
+            external = sum(
+                1 for u, v in graph.edges()
+                if (u in other_files and v not in other_files) or (u not in other_files and v in other_files)
+            )
+            
+            other_cluster = FileCluster(
+                cluster_id=FileCluster.generate_id(sorted(other_files)),
+                files=sorted(other_files),
+                layer=other_layer,
+                total_additions=sum(f.additions for f in files_in_other),
+                total_deletions=sum(f.deletions for f in files_in_other),
+                internal_edges=internal,
+                external_edges=external,
+            )
+            
+            cluster_models = top_clusters + [other_cluster]
+        
         # Stage 4: Sort by layer priority, then size
         cluster_models.sort(
             key=lambda c: (self.LAYER_PRIORITY.get(c.layer, 99), len(c.files))
         )
         
         return cluster_models
+    
+    def _merge_by_path_prefix(self, clusters: list[set[str]]) -> list[set[str]]:
+        """
+        Merge clusters that share the same top-level directory (first 2 path segments)
+        and belong to the same architectural layer.
+        
+        This is crucial for sparse dependency graphs where files in the same directory
+        have no import relationships but should logically be grouped together.
+        
+        Example:
+            django/db/models/base.py → prefix "django/db"
+            django/db/models/options.py → prefix "django/db"
+            → Merge if both are "backend" layer
+        
+        Args:
+            clusters: List of file sets
+            
+        Returns:
+            Merged clusters grouped by path prefix and layer
+        """
+        def get_prefix(filepath: str) -> str:
+            """Extract first 2 path segments as prefix."""
+            parts = filepath.split('/')
+            return '/'.join(parts[:2]) if len(parts) >= 2 else parts[0]
+        
+        # Group clusters by (prefix, layer)
+        prefix_groups: dict[tuple[str, str], list[set[str]]] = {}
+        
+        for cluster in clusters:
+            layer = self._detect_layer(list(cluster))
+            
+            # Get most common prefix in cluster
+            prefixes = [get_prefix(f) for f in cluster]
+            if not prefixes:
+                continue
+            
+            most_common_prefix = max(set(prefixes), key=prefixes.count)
+            
+            key = (most_common_prefix, layer)
+            if key not in prefix_groups:
+                prefix_groups[key] = []
+            prefix_groups[key].append(cluster)
+        
+        # Merge clusters within each group
+        merged = []
+        for (prefix, layer), group_clusters in prefix_groups.items():
+            if len(group_clusters) > 1:
+                # Merge all clusters in this group
+                merged_cluster = set()
+                for c in group_clusters:
+                    merged_cluster.update(c)
+                merged.append(merged_cluster)
+                logger.debug(f"Merged {len(group_clusters)} clusters with prefix '{prefix}' and layer '{layer}' into 1 cluster with {len(merged_cluster)} files")
+            else:
+                # Single cluster, keep as-is
+                merged.extend(group_clusters)
+        
+        return merged
     
     def _detect_layer(self, files: list[str]) -> Literal["schema", "backend", "frontend", "tests", "config", "docs", "mixed"]:
         """
