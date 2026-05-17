@@ -22,11 +22,11 @@ pr-surgeon/
 
 ### Backend responsibilities
 - Fetch PR data from GitHub via PyGithub
-- Parse changed files into ASTs (Python: stdlib `ast`; JS/TS: pragmatic regex for MVP)
+- Parse changed files into ASTs (Python: stdlib `ast`; JS/TS: regex-based import detection)
 - Build a directed dependency graph (`networkx.DiGraph`) where nodes are files and edges are import/reference relationships
 - Detect clusters of tightly-coupled files using `greedy_modularity_communities`
-- Decompose the PR into sub-PRs respecting topological order (DB → API → UI → tests)
-- Enrich sub-PRs with watsonx.ai Granite for human-readable descriptions, risk assessment, reviewer suggestions
+- Decompose the PR into sub-PRs respecting topological order (schema → backend → frontend → tests)
+- Enrich sub-PRs with template-based or cached descriptions, risk assessment, reviewer suggestions
 
 ### Frontend responsibilities
 - Single-page input: paste PR URL
@@ -35,18 +35,22 @@ pr-surgeon/
 
 ### Data flow
 ```
-PR URL → GitHubPRClient → DependencyAnalyzer → PRDecomposer → WatsonxService → Frontend
+PR URL → GitHubPRClient → DependencyAnalyzer → PRDecomposer → LLMService → Frontend
+                                    ↓                              ↓
+                            Language Parsers              Template/Cache Mode
+                         (Python, JS/TS, Generic)
 ```
 
 ## Key Conventions
 
 ### Python (backend)
-- Python 3.11 strict type hints everywhere
+- Python 3.11 with strict type hints everywhere
 - Pydantic v2 for all data contracts at service boundaries
-- `loguru` for logging, structured JSON output
-- All services are classes with a single public method + private helpers
+- `loguru` for structured logging (JSON output configurable)
+- All services are classes with focused public methods + private helpers
 - Tests live in `backend/tests/`, run with `pytest`
-- No global state; everything is dependency-injected through FastAPI
+- Minimal global state; services instantiated per request in FastAPI
+- Environment variables via `python-dotenv`
 
 ### TypeScript (frontend)
 - Next.js 14 App Router (not Pages Router)
@@ -63,34 +67,66 @@ PR URL → GitHubPRClient → DependencyAnalyzer → PRDecomposer → WatsonxSer
 ## Common Tasks
 
 ### Add a new language to the dependency analyzer
-1. Create `backend/services/parsers/<lang>_parser.py` with a `parse(source: str) -> List[Import]` function
-2. Register it in `DependencyAnalyzer.PARSERS`
-3. Add fixtures in `backend/tests/fixtures/<lang>/`
-4. Write at least 3 unit tests covering: simple imports, relative imports, edge cases
+1. Create `backend/services/parsers/<lang>_parser.py` implementing the `Parser` protocol
+2. Implement `extract_imports(source: str, file_path: str) -> List[Import]`
+3. Register it in `DependencyAnalyzer._register_parsers()`
+4. Add test fixtures in `backend/tests/fixtures/<lang>/`
+5. Write unit tests covering: simple imports, relative imports, edge cases
 
 ### Add a new sub-PR enrichment field
 1. Extend `EnrichedSubPR` model in `backend/models/subpr.py`
-2. Update the Granite prompt in `WatsonxService.enrich_subpr` to include the new field in JSON output
-3. Add fallback template logic in `_fallback_enrich`
-4. Update the frontend `PRCard` component to render the new field
+2. Update template logic in `LLMService._enrich_with_template()` to include the new field
+3. If using cached mode, update the JSON structure in `demo_data/enrichments/`
+4. Update the frontend to render the new field in sub-PR cards
 
 ### Run locally
-```bash
-# Backend
-cd backend && uv pip install -e . && uvicorn main:app --reload
 
-# Frontend
-cd frontend && pnpm install && pnpm dev
+**Backend (Windows PowerShell):**
+```powershell
+cd backend
+.venv\Scripts\Activate.ps1
+uvicorn main:app --reload
+```
+
+**Backend (Unix/Linux/macOS):**
+```bash
+cd backend
+source .venv/bin/activate
+uvicorn main:app --reload
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm run dev
+```
+
+**Run tests:**
+```bash
+cd backend
+pytest
 ```
 
 ## Gotchas
 
-1. **Rate limits**: GitHub API has 60 req/hour unauthenticated, 5000/hour with token. Always provide a token in production.
-2. **Large repos**: clone is shallow (`--depth=1`) but still expensive. We cache cloned repos in `/tmp/pr-surgeon-cache/` with a 1-hour TTL.
-3. **watsonx.ai credits**: $80 USD budget. Each Granite call ~$0.001. The `enrich_subpr` method caches by sub-PR ID to avoid re-billing.
-4. **TypeScript parsing is regex-based** for MVP. This is acceptable accuracy for the demo (~85% precision on import detection) but should move to `tree-sitter-typescript` in v2.
-5. **Topological sort can have multiple valid orderings**. We always prefer schema/migration files first, frontend last, tests after their target.
-6. **React Flow performance** degrades past ~500 nodes. For monster PRs, we collapse intra-cluster nodes into super-nodes.
+1. **Rate limits**: GitHub API has 60 req/hour unauthenticated, 5000/hour with token. Always provide `GITHUB_TOKEN` in `.env` for production use.
+
+2. **No repo cloning**: We fetch file content via GitHub API only. This means we only see changed files in the PR, not the full repository context. Import resolution is limited to files within the PR.
+
+3. **LLM Service modes**:
+   - `template` (default): Deterministic string templates, no API calls, instant
+   - `bob_pregenerated`: Loads from cached JSON files in `demo_data/enrichments/`
+   - Future: `watsonx` mode for live IBM watsonx.ai Granite API calls
+
+4. **TypeScript/JavaScript parsing is regex-based** for MVP. Acceptable accuracy (~85% precision on import detection) but should migrate to `tree-sitter-typescript` in v2 for production use.
+
+5. **Topological sort ordering**: Multiple valid orderings exist. We prioritize: schema → config → backend → frontend → tests → docs. Within each layer, smaller clusters merge first.
+
+6. **React Flow performance**: Degrades past ~500 nodes. For very large PRs (300+ files), consider implementing node collapsing or pagination.
+
+7. **Parser coverage**: Python parser uses AST (high accuracy). JS/TS uses regex (good accuracy). Other languages use generic regex patterns (lower accuracy but functional).
+
+8. **File path resolution**: Relative imports are resolved within the PR's file set only. Absolute imports to external packages are ignored.
 
 ## How Bob is used in this project
 
@@ -103,12 +139,34 @@ Bob is the primary development partner for this project. Specifically:
 
 Sessions are exported to `bob_sessions/` with descriptive names. Each file documents the prompt, Bob's response, and what was kept/discarded.
 
-## Out of scope (v1)
+## Implementation Status
 
-- Executing the decomposition (creating actual sub-PRs in GitHub)
-- GitLab/Bitbucket support
-- Languages beyond Python and JS/TS
-- Real-time collaboration on the decomposition plan
-- Authentication / multi-tenant
+### ✅ Completed (v1)
+- GitHub PR fetching via PyGithub
+- Dependency analysis with graph building
+- Python AST parser (high accuracy)
+- JavaScript/TypeScript regex parser (good accuracy)
+- Generic parsers for 8+ languages (Go, Java, Ruby, Rust, C, C++, PHP)
+- Community detection clustering with networkx
+- Layer-aware decomposition (schema → backend → frontend → tests)
+- Template-based sub-PR enrichment
+- React Flow visualization with dark mode
+- Full test suite with pytest
+- FastAPI backend with CORS
+- Next.js 14 frontend with TypeScript
 
-These are listed in `SUBMISSION.md` under "Future Work" and are intentional cuts to keep the 18-hour MVP focused.
+### 🚧 In Progress
+- Deployment to Railway (backend) + Vercel (frontend)
+- Demo video production
+- watsonx.ai Granite integration (infrastructure ready, API integration pending)
+
+### 📋 Future Work (v2)
+- **Execution**: Actually create sub-PRs as branches in GitHub via GitHub API
+- **GitLab/Bitbucket support**: Extend `GitHubPRClient` to support other platforms
+- **Tree-sitter parsing**: Replace regex-based JS/TS parser with tree-sitter for production accuracy
+- **GitHub App**: Native PR comments suggesting decomposition inline
+- **Multi-user collaboration**: Real-time editing of decomposition plans
+- **Authentication**: User accounts and saved analyses
+- **Advanced clustering**: ML-based clustering considering semantic similarity, not just imports
+
+These are intentional scope cuts to deliver a working MVP within the hackathon timeline.

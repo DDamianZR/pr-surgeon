@@ -3,9 +3,9 @@
 **Team**: Dievalivann (solo)
 **Hackathon**: IBM Bob Hackathon 2026
 **Theme**: Turn idea into impact faster
-**Repository**: [PUBLIC GITHUB URL]
-**Live Demo**: [VERCEL URL]
-**Video**: [YOUTUBE/LOOM URL]
+**Repository**: [GitHub Repository URL - to be added]
+**Live Demo**: 🚧 Deployment in progress (local demo available)
+**Video**: 🎬 Coming soon
 
 ---
 
@@ -25,11 +25,11 @@ Industry estimates (DORA, 2024) indicate that Fortune 500 engineering organizati
 
 PR Surgeon takes a monster PR URL and returns a **safe decomposition plan**:
 
-1. Clone the repo and fetch the PR diff via GitHub API.
-2. Build a directed dependency graph of changed files using AST parsing (Python via stdlib `ast`, JS/TS via pragmatic import detection).
+1. Fetch the PR diff via GitHub API (no repo cloning required).
+2. Build a directed dependency graph of changed files using AST parsing (Python via stdlib `ast`, JS/TS via regex-based import detection).
 3. Detect tightly-coupled clusters using community detection on the graph.
-4. Topologically order the clusters into sub-PRs respecting architectural layers (schema → API → frontend → tests).
-5. Enrich each sub-PR with IBM watsonx.ai Granite: human-readable title, description, risk level, suggested reviewers, testing recommendations.
+4. Topologically order the clusters into sub-PRs respecting architectural layers (schema → backend → frontend → tests).
+5. Enrich each sub-PR with intelligent descriptions: human-readable title, description, risk level, suggested reviewers, testing recommendations.
 
 The output is a 5–7 sub-PR plan that an engineering team can execute in 5–10 days instead of 4–8 weeks.
 
@@ -62,9 +62,10 @@ PR URL ────────► │  Next.js   │ ◄──── React Flow
 
 Stack:
 - **Backend**: Python 3.11, FastAPI, PyGithub, networkx, Pydantic v2
-- **Frontend**: Next.js 14 (App Router), TypeScript, React Flow, shadcn/ui, Tailwind
-- **LLM**: IBM watsonx.ai Granite 3-8B Instruct (with template fallback)
-- **Deploy**: Railway (backend), Vercel (frontend)
+- **Frontend**: Next.js 14 (App Router), TypeScript, React Flow, Tailwind CSS
+- **LLM**: Template-based enrichment (watsonx.ai integration infrastructure ready)
+- **Parsers**: Python (AST), JavaScript/TypeScript (regex), Generic fallback (8+ languages)
+- **Deploy**: Local development complete, Railway + Vercel deployment in progress
 
 ## 4. Why Only IBM Bob Can Build This
 
@@ -84,17 +85,22 @@ All Bob sessions are exported in `bob_sessions/`. Summary:
 
 | Session | Phase | Outcome |
 |---|---|---|
-| 01_scaffolding | Hour 0–2 | Generated monorepo structure, AGENTS.md, all config files |
+| 00-01_context_loading | Hour 0–2 | Initial project setup and context establishment |
 | 02_github_client | Hour 2–4 | Implemented PyGithub wrapper with error handling and tests |
-| 03_dependency_analyzer | Hour 4–7 | Core graph-building logic; iterated 3 times on community detection |
-| 04_decomposer | Hour 7–9 | Topological ordering + heuristic for cluster sizing |
-| 05_watsonx_integration | Hour 9–11 | Granite prompts + JSON validation + fallback templates |
-| 06_frontend_graph | Hour 11–13 | React Flow component with cluster styling |
-| 07_polish_and_docs | Hour 14–16 | README, SUBMISSION.md, video script |
+| 03-05_dependency_analyzer | Hour 4–9 | Core graph-building logic; iterated on community detection and parsers |
+| 05_backend | Hour 9–12 | FastAPI integration, decomposer, LLM service with template mode |
+| Frontend development | Hour 12–16 | React Flow visualization, landing page, analysis page with dark mode |
+| Testing & refinement | Hour 16–18 | Full test suite, bug fixes, documentation updates |
 
-Bobcoin consumption: ~30 of 40 available (~75%). Strategic use of literate coding + Code Actions minimized chat-style consumption.
+**Key Bob Contributions**:
+- Entire monorepo scaffolding in first session
+- Dependency analyzer algorithm design with multiple iterations
+- Parser implementations for Python, JS/TS, and generic fallback
+- React Flow component with proper TypeScript types
+- Test suite structure and fixtures
+- This documentation (AGENTS.md, README.md, SUBMISSION.md)
 
-**Custom Modes created**: "Algorithm Design" mode for the dependency analyzer iteration, with system prompt biasing toward correctness-first explanations.
+**Development Approach**: Iterative refinement with Bob as pair programmer, using repository-aware context to make informed architectural decisions.
 
 ## 6. Business Value
 
@@ -123,49 +129,108 @@ Beyond the hackathon, the existing tool landscape is thin:
 
 PR Surgeon is the first tool that uses full-repo-context AI to propose the split automatically.
 
-## 8. Demo Flow (matches video)
+## 8. Demo Flow (for video)
 
-1. [0:00] Hook: monster PR problem statement
-2. [0:20] Solution preview: the UI
-3. [0:50] Live demo with a real PR from a public repo (e.g., a large refactor in `microsoft/vscode` or `kubernetes/kubernetes`)
-4. [2:50] Bob-the-builder narrative: showing `bob_sessions/`
-5. [3:30] Business value + close
+1. **[0:00-0:30]** Hook: The monster PR problem
+   - Show a 300+ file PR that's been open for weeks
+   - Cost: $15K-25K per PR in engineering time
+
+2. **[0:30-1:00]** Solution preview
+   - PR Surgeon interface
+   - "Paste URL → Get decomposition plan in seconds"
+
+3. **[1:00-2:30]** Live demo
+   - Use Django Composite Primary Key PR (43 files)
+   - Show real-time analysis stages
+   - Interactive dependency graph with React Flow
+   - Review proposed sub-PRs with descriptions
+
+4. **[2:30-3:00]** Bob integration
+   - Show `bob_sessions/` directory
+   - Highlight repository-aware development
+   - "Built in 18 hours with Bob as pair programmer"
+
+5. **[3:00-3:30]** Business value & next steps
+   - Market opportunity
+   - Deployment roadmap
+   - Call to action
+
+**Note**: Video production in progress
 
 ## 9. Setup Instructions
 
-See `README.md`. TL;DR:
+See `README.md` for detailed instructions. Quick start:
 
-```bash
-git clone [repo]
-cd pr-surgeon
-
-# Backend
+**Backend (Windows PowerShell):**
+```powershell
 cd backend
-cp .env.example .env  # add GITHUB_TOKEN and WATSONX_API_KEY
-uv venv && source .venv/bin/activate
-uv pip install -e .
+Copy-Item .env.example .env
+# Edit .env and add GITHUB_TOKEN (optional but recommended)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
 uvicorn main:app --reload
-
-# Frontend (new terminal)
-cd ../frontend
-pnpm install
-pnpm dev
 ```
 
-Open `http://localhost:3000`. Paste a PR URL. Watch the magic.
+**Frontend:**
+```bash
+cd frontend
+cp .env.local.example .env.local
+npm install
+npm run dev
+```
 
-## 10. Future Work (Honest Cuts)
+**Verify:**
+- Backend: http://localhost:8000/health
+- API docs: http://localhost:8000/docs
+- Frontend: http://localhost:3000
 
-These were intentionally out of scope for the 18-hour MVP:
+**Test with example PR:**
+- Use Django Composite Primary Key: https://github.com/django/django/pull/18056
+- Or any public GitHub PR with 20+ files
 
-- **Execution**: actually creating the sub-PRs as branches in GitHub (currently we generate the plan; execution is manual)
-- **GitLab / Bitbucket support**
-- **Languages beyond Python and JS/TS** (Go, Java, Rust, C#)
-- **Tree-sitter parsing for TS/JS** (currently pragmatic regex)
-- **Multi-user collaboration** on the decomposition plan
-- **GitHub App** for native PR comments suggesting the split inline
+## 10. Current Status & Future Work
 
-The fastest path to v2 is the GitHub App, which positions PR Surgeon as an installed product in the marketplace.
+### ✅ Implemented (MVP)
+- GitHub PR fetching and parsing
+- Dependency analysis with graph building
+- Multi-language parser support (Python AST, JS/TS regex, generic fallback)
+- Community detection clustering
+- Layer-aware decomposition
+- Template-based sub-PR enrichment
+- React Flow visualization with dark mode
+- Full test suite with pytest
+- FastAPI backend with comprehensive error handling
+- Next.js 14 frontend with TypeScript
+
+### 🚧 In Progress
+- Deployment to Railway (backend) + Vercel (frontend)
+- Demo video production
+- watsonx.ai Granite API integration (infrastructure ready)
+
+### 📋 Future Work (v2)
+
+**High Priority:**
+- **Execution**: Create sub-PRs as actual branches in GitHub via API
+- **GitHub App**: Native PR comments suggesting decomposition inline
+- **Tree-sitter parsing**: Replace regex-based JS/TS parser for production accuracy
+
+**Medium Priority:**
+- **GitLab/Bitbucket support**: Extend platform coverage
+- **Advanced clustering**: ML-based semantic similarity analysis
+- **Multi-user collaboration**: Real-time plan editing
+- **Authentication**: User accounts and saved analyses
+
+**Lower Priority:**
+- Additional language parsers (C#, Swift, Kotlin)
+- Export formats (GitHub Actions workflow, Jira tickets)
+- Integration with code review tools (Reviewable, Graphite)
+
+### Honest Assessment
+
+This MVP demonstrates the core value proposition: automated PR decomposition using repository-aware AI. The template-based enrichment works well for the demo, and the watsonx.ai integration is architecturally ready but not yet connected to live API calls.
+
+The most valuable next step is the GitHub App, which would make PR Surgeon a one-click install for any repository.
 
 ---
 

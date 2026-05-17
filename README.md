@@ -9,8 +9,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue)](https://www.typescriptlang.org/)
 
-**Live Demo**: [pr-surgeon.vercel.app](https://pr-surgeon.vercel.app) <!-- replace -->
-**Video**: [Watch the 4-minute demo](https://...) <!-- replace -->
+**Status**: 🚧 Local development complete, deployment in progress
+**Video**: Coming soon
 
 ---
 
@@ -26,7 +26,7 @@ PR Surgeon takes a monster PR URL and returns a safe decomposition plan:
 2. **Analyze** real inter-file dependencies (imports, references, inheritance)
 3. **Cluster** tightly-coupled files using community detection
 4. **Decompose** into 5–7 sub-PRs respecting architectural layers
-5. **Enrich** each sub-PR with watsonx.ai Granite: title, description, risk, reviewers
+5. **Enrich** each sub-PR with intelligent descriptions, risk assessment, and reviewer suggestions
 
 What was a 4-week review marathon becomes a 5-day mergeable plan.
 
@@ -36,9 +36,16 @@ Decomposing a PR is a **whole-repo-context** problem. You cannot solve it with s
 
 ## Demo
 
-![PR Surgeon demo](docs/demo.gif) <!-- if you have time, otherwise screenshot -->
+**Local Demo Available**: Run the application locally to analyze real Pull Requests from GitHub.
 
-Paste a PR URL → see the dependency graph → review the proposed sub-PRs → export the plan.
+**Demo Flow**:
+1. Paste a PR URL (e.g., Django's Composite Primary Key PR)
+2. Watch real-time analysis stages (Fetching → Parsing → Building graph → Clustering)
+3. View interactive dependency graph with React Flow
+4. Review proposed sub-PRs with descriptions and merge order
+5. Export the decomposition plan
+
+**Screenshot**: Coming soon
 
 ## Architecture
 
@@ -69,9 +76,10 @@ PR URL ────────► │  Next.js   │ ◄──── React Flow
 
 **Stack**:
 - Backend: Python 3.11, FastAPI, PyGithub, networkx, Pydantic v2
-- Frontend: Next.js 14, TypeScript, React Flow, shadcn/ui, Tailwind
-- LLM: IBM watsonx.ai Granite 3-8B Instruct
-- Deploy: Railway + Vercel
+- Frontend: Next.js 14, TypeScript, React Flow, Tailwind CSS
+- LLM: Template-based enrichment (watsonx.ai integration ready)
+- Parsers: Python (AST), JavaScript/TypeScript, Generic fallback for 8+ languages
+- Deploy: Local development (Railway + Vercel deployment in progress)
 
 ## How Bob Was Used
 
@@ -90,28 +98,53 @@ See [`AGENTS.md`](./AGENTS.md) for the persistent context Bob uses.
 ### Prerequisites
 - Python 3.11+
 - Node.js 20+
-- pnpm
-- A GitHub personal access token (for higher rate limits)
-- IBM watsonx.ai API key (optional — fallback templates included)
+- npm or pnpm
+- A GitHub personal access token (recommended for higher rate limits)
+- Windows PowerShell or Unix-like terminal
 
-### Backend
-```bash
+### Backend Setup
+
+**Windows PowerShell:**
+```powershell
 cd backend
-cp .env.example .env  # fill in GITHUB_TOKEN and WATSONX_API_KEY
-uv venv && source .venv/bin/activate
-uv pip install -e .
+Copy-Item .env.example .env
+# Edit .env and add your GITHUB_TOKEN (optional but recommended)
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
 uvicorn main:app --reload
 ```
 
-### Frontend
+**Unix/Linux/macOS:**
 ```bash
-cd frontend
-cp .env.local.example .env.local  # set NEXT_PUBLIC_API_URL
-pnpm install
-pnpm dev
+cd backend
+cp .env.example .env
+# Edit .env and add your GITHUB_TOKEN
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+uvicorn main:app --reload
 ```
 
-Open http://localhost:3000.
+Backend will run at http://localhost:8000
+
+### Frontend Setup
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+# Edit .env.local if needed (default: http://localhost:8000)
+npm install
+npm run dev
+```
+
+Frontend will run at http://localhost:3000
+
+### Verify Installation
+
+1. Backend health check: http://localhost:8000/health
+2. API docs: http://localhost:8000/docs
+3. Frontend: http://localhost:3000
 
 ## Project Structure
 
@@ -137,10 +170,76 @@ pr-surgeon/
 └── README.md
 ```
 
+## Troubleshooting
+
+### Backend Issues
+
+**"Module not found" errors:**
+```powershell
+pip install -e ".[dev]"
+```
+
+**GitHub API rate limit:**
+- Add a GitHub personal access token to `.env`
+- Unauthenticated: 60 requests/hour
+- Authenticated: 5000 requests/hour
+
+**Port already in use:**
+```powershell
+uvicorn main:app --reload --port 8001
+```
+
+### Frontend Issues
+
+**"Cannot connect to backend":**
+- Verify backend is running at http://localhost:8000
+- Check `NEXT_PUBLIC_API_URL` in `.env.local`
+
+**React Flow not rendering:**
+- Clear browser cache
+- Verify `reactflow` is installed: `npm install reactflow`
+
+### Analysis Issues
+
+**"No dependencies found":**
+- Some PRs have minimal cross-file dependencies
+- Try the Django Composite Primary Key example (43 files, well-connected)
+
+**Parser errors:**
+- Python and JS/TS parsers are most robust
+- Other languages use generic import detection (lower accuracy)
+
+## Current Status
+
+✅ **Implemented:**
+- GitHub PR fetching and parsing
+- Dependency analysis with AST parsing (Python) and regex (JS/TS)
+- Graph-based clustering with networkx
+- Sub-PR decomposition with layer-aware ordering
+- Template-based enrichment
+- React Flow visualization with dark mode
+- Full test suite
+
+🚧 **In Progress:**
+- Deployment to Railway + Vercel
+- Demo video production
+- watsonx.ai Granite integration (template fallback working)
+
+📋 **Planned:**
+- GitHub App for inline PR suggestions
+- GitLab/Bitbucket support
+- Tree-sitter parsing for improved accuracy
+- Multi-user collaboration features
+
 ## License
 
 MIT — see [LICENSE](./LICENSE).
 
 ## Acknowledgments
 
-Built for the IBM Bob Hackathon 2026 hosted by [lablab.ai](https://lablab.ai). Thanks to the IBM Bob team for the developer access and to the lablab.ai community for the support.
+Built for the IBM Bob Hackathon 2026 hosted by [lablab.ai](https://lablab.ai).
+
+Special thanks to:
+- IBM Bob team for repository-aware AI development tools
+- lablab.ai community for hackathon support
+- Django, Desbordante, and other open-source projects used for testing
